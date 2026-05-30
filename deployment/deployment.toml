@@ -1,0 +1,19 @@
+[[cells]]
+name = "schema-type"
+enable_type_id = true
+location = { file = "build/release/schema-type-stripped" }
+
+[[cells]]
+name = "attestation-type"
+enable_type_id = true
+location = { file = "build/release/attestation-type-stripped" }
+
+[[dep_groups]]
+name = "ckb-attestation-dep-group"
+enable_type_id = false
+cells = ["schema-type", "attestation-type"]
+
+[lock]
+code_hash = "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8"
+args = "0x16fce372776cf8632243f05e97a7e6e71ee51195"
+hash_type = "type"
