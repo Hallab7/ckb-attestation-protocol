@@ -84,7 +84,7 @@ export default function Home() {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            <Link href="/issue" className="btn-primary">
+            <Link href="/issue" className="btn-secondary">
               Issue attestation
             </Link>
             <Link href="/verify" className="btn-secondary">
