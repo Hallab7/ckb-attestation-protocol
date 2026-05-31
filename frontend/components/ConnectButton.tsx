@@ -12,15 +12,19 @@ export function ConnectButton() {
   }, [signerInfo]);
 
   if (address) return (
-    <div className="flex items-center gap-2">
-      <span className="w-2 h-2 rounded-full bg-emerald-400" />
-      <span className="text-sm text-slate-600 font-mono hidden sm:block">{address.slice(0, 8)}...{address.slice(-6)}</span>
-      <button onClick={disconnect} className="text-xs text-slate-400 hover:text-slate-700">Disconnect</button>
+    <div className="flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-2">
+      <span className="h-2 w-2 rounded-full" style={{ backgroundColor: "var(--text)" }} />
+      <span className="hidden font-mono text-xs text-[var(--muted)] sm:block">
+        {address.slice(0, 8)}...{address.slice(-6)}
+      </span>
+      <button type="button" onClick={disconnect} className="btn-ghost px-0 py-0 text-[11px] uppercase tracking-[0.14em]">
+        Disconnect
+      </button>
     </div>
   );
 
   return (
-    <button onClick={open} className="text-sm font-medium px-4 py-1.5 rounded-md border border-slate-300 bg-white text-slate-700 hover:border-slate-400 hover:bg-slate-50">
+    <button onClick={open} className="btn-primary">
       Connect Wallet
     </button>
   );

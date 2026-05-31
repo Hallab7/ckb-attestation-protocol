@@ -1,4 +1,5 @@
 "use client";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCcc } from "@ckb-ccc/connector-react";
@@ -17,122 +18,186 @@ export default function IssuePage() {
 
   function addField() {
     if (!newField.name.trim()) return;
-    setFields((f) => [...f, { ...newField }]);
+    setFields((current) => [...current, { ...newField }]);
     setNewField({ name: "", type: "string", required: false });
   }
 
-  function removeField(i: number) {
-    setFields((f) => f.filter((_, idx) => idx !== i));
+  function removeField(index: number) {
+    setFields((current) => current.filter((_, fieldIndex) => fieldIndex !== index));
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!signerInfo?.signer) { open(); return; }
-    setSubmitting(true); setError(null);
+    if (!signerInfo?.signer) {
+      open();
+      return;
+    }
+
+    setSubmitting(true);
+    setError(null);
     try {
       const res = await createSchema(signerInfo.signer, form.name, form.description, fields);
       setResult(res);
-    } catch (e: any) { setError(e?.message ?? "Transaction failed"); }
-    finally { setSubmitting(false); }
+    } catch (err: any) {
+      setError(err?.message ?? "Transaction failed");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
-  if (result) return (
-    <div className="max-w-xl mx-auto text-center py-16">
-      <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
-        <svg className="w-6 h-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-        </svg>
+  if (result) {
+    return (
+      <div className="mx-auto max-w-2xl space-y-6 text-center">
+        <div className="surface px-6 py-10">
+          <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--bg)]">
+            <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <p className="page-kicker">Schema created</p>
+          <h1 className="section-title mt-3">Your schema is ready to issue against.</h1>
+          <p className="mt-4 text-sm text-[var(--muted)]">Schema ID</p>
+          <p className="mt-2 break-all rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 font-mono text-xs">{result.schemaId}</p>
+          <a
+            href={`https://testnet.explorer.nervos.org/transaction/${result.txHash}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 inline-flex text-xs uppercase tracking-[0.16em] text-[var(--muted)] hover:text-[var(--text)]"
+          >
+            View transaction {">"}
+          </a>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <button onClick={() => router.push(`/issue/${result.schemaId}`)} className="btn-primary">
+            Issue attestations
+          </button>
+          <button
+            onClick={() => {
+              setResult(null);
+              setForm({ name: "", description: "" });
+              setFields([]);
+            }}
+            className="btn-secondary"
+          >
+            Create another
+          </button>
+        </div>
       </div>
-      <h2 className="text-lg font-semibold text-slate-900 mb-2">Schema Created!</h2>
-      <p className="text-xs font-mono text-slate-500 bg-slate-100 px-3 py-2 rounded-lg mb-4 break-all">{result.schemaId}</p>
-      <a href={`https://testnet.explorer.nervos.org/transaction/${result.txHash}`} target="_blank" rel="noopener noreferrer"
-        className="text-xs text-violet-600 underline block mb-6">View transaction →</a>
-      <div className="flex gap-3 justify-center">
-        <button onClick={() => router.push(`/issue/${result.schemaId}`)}
-          className="bg-violet-600 text-white text-sm font-medium px-5 py-2 rounded-lg hover:bg-violet-700">
-          Issue Attestations Now
-        </button>
-        <button onClick={() => { setResult(null); setForm({ name: "", description: "" }); setFields([]); }}
-          className="border border-slate-200 text-slate-600 text-sm font-medium px-5 py-2 rounded-lg hover:border-slate-300">
-          Create Another
-        </button>
-      </div>
-    </div>
-  );
+    );
+  }
 
   return (
-    <div className="max-w-xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-slate-900 mb-1">Create Attestation Schema</h1>
-        <p className="text-sm text-slate-500">Define the structure of your attestations. You'll be able to issue attestations of this type to any address.</p>
-      </div>
+    <div className="mx-auto max-w-2xl space-y-8">
+      <section className="space-y-4">
+        <p className="page-kicker">Schema builder</p>
+        <h1 className="section-title">Create an attestation schema</h1>
+        <p className="body-copy">
+          Define the structure of your claims, then issue attestations against it from the same editorial workspace.
+        </p>
+      </section>
 
-      <form onSubmit={handleSubmit} className="bg-white border border-slate-200 rounded-xl p-6 space-y-4">
-        <Field label="Schema Name">
-          <input type="text" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-            placeholder="e.g. CKBuilder Completion" className="input" required />
+      <form onSubmit={handleSubmit} className="surface space-y-5 p-5 md:p-6">
+        <Field label="Schema name">
+          <input
+            type="text"
+            value={form.name}
+            onChange={(e) => setForm((current) => ({ ...current, name: e.target.value }))}
+            placeholder="e.g. CKBuilder completion"
+            className="input-field"
+            required
+          />
         </Field>
 
         <Field label="Description">
-          <textarea value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-            placeholder="What this attestation certifies..." rows={3} className="input resize-none" required />
+          <textarea
+            value={form.description}
+            onChange={(e) => setForm((current) => ({ ...current, description: e.target.value }))}
+            placeholder="What this attestation certifies"
+            rows={4}
+            className="input-field resize-none"
+            required
+          />
         </Field>
 
-        {/* Fields */}
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">Fields</label>
+        <div className="space-y-3">
+          <div className="flex items-end justify-between gap-4">
+            <label className="block text-sm font-medium">Fields</label>
+            <span className="text-xs text-[var(--muted)]">{fields.length} defined</span>
+          </div>
+
           {fields.length > 0 && (
-            <div className="mb-2 space-y-1">
-              {fields.map((f, i) => (
-                <div key={i} className="flex items-center justify-between text-xs bg-slate-50 px-3 py-1.5 rounded-lg">
-                  <span className="text-slate-700 font-medium">{f.name}</span>
-                  <span className="text-slate-400">{f.type}{f.required ? " · required" : ""}</span>
-                  <button type="button" onClick={() => removeField(i)} className="text-slate-400 hover:text-red-500 ml-2">×</button>
+            <div className="space-y-2">
+              {fields.map((field, index) => (
+                <div key={`${field.name}-${index}`} className="flex items-center justify-between gap-3 rounded-2xl border border-[var(--border)] px-4 py-3 text-sm">
+                  <div className="min-w-0">
+                    <p className="truncate font-medium">{field.name}</p>
+                    <p className="text-xs text-[var(--muted)]">
+                      {field.type}
+                      {field.required ? " / required" : ""}
+                    </p>
+                  </div>
+                  <button type="button" onClick={() => removeField(index)} className="text-xs uppercase tracking-[0.16em] text-[var(--muted)] hover:text-[var(--text)]">
+                    Remove
+                  </button>
                 </div>
               ))}
             </div>
           )}
-          <div className="flex gap-2">
-            <input type="text" value={newField.name} onChange={(e) => setNewField((f) => ({ ...f, name: e.target.value }))}
-              placeholder="Field name" className="input flex-1" />
-            <select value={newField.type} onChange={(e) => setNewField((f) => ({ ...f, type: e.target.value as SchemaField["type"] }))}
-              className="input w-28">
+
+          <div className="grid gap-3 md:grid-cols-[1fr_140px_auto_auto]">
+            <input
+              type="text"
+              value={newField.name}
+              onChange={(e) => setNewField((current) => ({ ...current, name: e.target.value }))}
+              placeholder="Field name"
+              className="input-field"
+            />
+            <select
+              value={newField.type}
+              onChange={(e) => setNewField((current) => ({ ...current, type: e.target.value as SchemaField["type"] }))}
+              className="input-field"
+            >
               <option value="string">string</option>
               <option value="number">number</option>
               <option value="boolean">boolean</option>
             </select>
-            <label className="flex items-center gap-1 text-xs text-slate-500 shrink-0">
-              <input type="checkbox" checked={newField.required} onChange={(e) => setNewField((f) => ({ ...f, required: e.target.checked }))} />
-              req
+            <label className="flex items-center gap-2 rounded-2xl border border-[var(--border)] px-4 py-3 text-xs uppercase tracking-[0.16em] text-[var(--muted)]">
+              <input
+                type="checkbox"
+                checked={newField.required}
+                onChange={(e) => setNewField((current) => ({ ...current, required: e.target.checked }))}
+              />
+              required
             </label>
-            <button type="button" onClick={addField}
-              className="px-3 py-2 text-sm border border-slate-200 rounded-lg text-slate-600 hover:border-slate-300 shrink-0">
-              Add
+            <button type="button" onClick={addField} className="btn-secondary">
+              Add field
             </button>
           </div>
         </div>
 
-        {error && <div className="px-3 py-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-xs">{error}</div>}
+        {error && (
+          <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--muted)]">
+            {error}
+          </div>
+        )}
 
-        <button type="submit" disabled={!form.name.trim() || !form.description.trim() || submitting}
-          className="w-full bg-violet-600 text-white text-sm font-medium py-2.5 rounded-lg hover:bg-violet-700 disabled:opacity-40 disabled:cursor-not-allowed">
-          {submitting ? "Creating..." : !signerInfo?.signer ? "Connect Wallet to Continue" : "Create Schema"}
+        <button
+          type="submit"
+          disabled={!form.name.trim() || !form.description.trim() || submitting}
+          className="btn-primary w-full rounded-2xl disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          {submitting ? "Creating..." : !signerInfo?.signer ? "Connect wallet to continue" : "Create schema"}
         </button>
       </form>
-
-      <style jsx>{`
-        .input { width: 100%; padding: 0.5rem 0.75rem; font-size: 0.875rem; border: 1px solid #e2e8f0; border-radius: 0.5rem; background: white; outline: none; color: #0f172a; }
-        .input:focus { border-color: #94a3b8; }
-        .input::placeholder { color: #94a3b8; }
-      `}</style>
     </div>
   );
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div>
-      <label className="block text-sm font-medium text-slate-700 mb-1">{label}</label>
+    <div className="space-y-2">
+      <label className="block text-sm font-medium">{label}</label>
       {children}
     </div>
   );

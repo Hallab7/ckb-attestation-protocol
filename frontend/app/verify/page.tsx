@@ -1,4 +1,5 @@
 "use client";
+
 import { useState } from "react";
 import { AttestationCard } from "@/components/AttestationCard";
 import { getAttestationsBySubject } from "@/lib/indexer";
@@ -14,61 +15,74 @@ export default function VerifyPage() {
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault();
     if (!address.trim()) return;
-    setLoading(true); setError(null); setAttestations(null);
+
+    setLoading(true);
+    setError(null);
+    setAttestations(null);
     try {
       const results = await getAttestationsBySubject(address.trim());
       setAttestations(results);
       setSearched(address.trim());
-    } catch (e: any) {
+    } catch {
       setError("Failed to query attestations. Check the address and try again.");
-    } finally { setLoading(false); }
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-slate-900 mb-1">Verify Attestations</h1>
-        <p className="text-sm text-slate-500">Paste any CKB address to see all on-chain attestations it holds.</p>
-      </div>
+    <div className="mx-auto max-w-3xl space-y-8">
+      <section className="space-y-4">
+        <p className="page-kicker">Verification</p>
+        <h1 className="section-title">Verify attestations</h1>
+        <p className="body-copy">Paste any CKB address to inspect the attestations it currently holds on-chain.</p>
+      </section>
 
-      <form onSubmit={handleSearch} className="flex gap-2 mb-8">
-        <input type="text" value={address} onChange={(e) => setAddress(e.target.value)}
-          placeholder="ckt1qzda0cr08m85hc8jlnfp3zer7..."
-          className="flex-1 px-4 py-2.5 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:border-slate-400 font-mono placeholder-slate-400" />
-        <button type="submit" disabled={!address.trim() || loading}
-          className="px-5 py-2.5 bg-violet-600 text-white text-sm font-medium rounded-lg hover:bg-violet-700 disabled:opacity-40">
+      <form onSubmit={handleSearch} className="surface flex flex-col gap-3 p-4 md:flex-row md:items-center md:p-5">
+        <input
+          type="text"
+          value={address}
+          onChange={(e) => setAddress(e.target.value)}
+          placeholder="ckt1q..."
+          className="input-field font-mono"
+        />
+        <button type="submit" disabled={!address.trim() || loading} className="btn-primary md:w-auto">
           {loading ? "Searching..." : "Verify"}
         </button>
       </form>
 
-      {error && <div className="px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm mb-6">{error}</div>}
+      {error && (
+        <div className="surface px-4 py-3 text-sm text-[var(--muted)]">
+          {error}
+        </div>
+      )}
 
       {attestations !== null && (
-        <>
-          <div className="flex items-center justify-between mb-4">
+        <div className="space-y-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="text-sm font-medium text-slate-900">
+              <p className="text-sm font-medium">
                 {attestations.length} attestation{attestations.length !== 1 ? "s" : ""} found
               </p>
-              <p className="text-xs text-slate-400 font-mono truncate max-w-xs">{searched}</p>
+              <p className="mt-1 max-w-full truncate font-mono text-xs uppercase tracking-[0.16em] text-[var(--muted)]">
+                {searched}
+              </p>
             </div>
-            {attestations.length > 0 && (
-              <span className="text-xs bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full border border-emerald-200 font-medium">
-                ✓ Verified on-chain
-              </span>
-            )}
+            {attestations.length > 0 && <span className="status-pill">Verified on-chain</span>}
           </div>
 
           {attestations.length === 0 ? (
-            <div className="text-center py-12 text-slate-400 bg-white border border-slate-200 rounded-xl">
+            <div className="surface py-16 text-center text-[var(--muted)]">
               <p className="text-sm">No attestations found for this address.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {attestations.map((a) => <AttestationCard key={a.attestationId} attestation={a} />)}
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              {attestations.map((attestation) => (
+                <AttestationCard key={attestation.attestationId} attestation={attestation} />
+              ))}
             </div>
           )}
-        </>
+        </div>
       )}
     </div>
   );
