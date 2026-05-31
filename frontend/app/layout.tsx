@@ -18,8 +18,20 @@ const sans = IBM_Plex_Sans({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
   title: "CKB Attestation Protocol",
   description: "On-chain verifiable attestations powered by CKB",
+  openGraph: {
+    title: "CKB Attestation Protocol",
+    description: "On-chain verifiable attestations powered by CKB",
+    images: ["/opengraph-image"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "CKB Attestation Protocol",
+    description: "On-chain verifiable attestations powered by CKB",
+    images: ["/opengraph-image"],
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
