@@ -13,6 +13,7 @@
   --button-text: #ffffff;
   --button-border: #000000;
   --shadow: 0 1px 0 rgba(0, 0, 0, 0.04);
+  --brand-logo-filter: none;
 }
 
 [data-theme="dark"] {
@@ -28,6 +29,7 @@
   --button-text: #000000;
   --button-border: #ffffff;
   --shadow: 0 1px 0 rgba(255, 255, 255, 0.03);
+  --brand-logo-filter: invert(1);
 }
 
 html,
@@ -237,5 +239,9 @@ a {
     gap: 1rem;
     padding: 0.75rem 0;
     border-top: 1px solid var(--border);
+  }
+
+  .brand-logo {
+    filter: var(--brand-logo-filter);
   }
 }

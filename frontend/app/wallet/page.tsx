@@ -141,7 +141,7 @@ export default function WalletPage() {
         )
       ) : tab === "issued" ? (
         issued.length === 0 ? (
-          <Empty msg="No attestations issued yet." link={{ href: "/issue", label: "Issue one ->" }} />
+          <Empty msg="No attestations issued yet." link={{ href: "/issue", label: "Issue one >" }} />
         ) : (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
             {issued.map((attestation) => (
@@ -156,7 +156,7 @@ export default function WalletPage() {
           </div>
         )
       ) : schemas.length === 0 ? (
-        <Empty msg="No schemas created yet." link={{ href: "/issue", label: "Create one ->" }} />
+        <Empty msg="No schemas created yet." link={{ href: "/issue", label: "Create one >" }} />
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {schemas.map((schema) => (

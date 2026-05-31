@@ -24,6 +24,7 @@ export default function IssueAttestationPage({ params }: { params: Promise<{ sch
   const [submitting, setSubmitting] = useState(false);
   const [results, setResults] = useState<IssuedResult[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [recipientHint, setRecipientHint] = useState<string | null>(null);
 
   useEffect(() => {
     getSchema(id).then(setSchema).catch(() => {});
@@ -54,16 +55,40 @@ export default function IssueAttestationPage({ params }: { params: Promise<{ sch
     setError(null);
     try {
       const data: Record<string, string | number | boolean> = {};
-      schema?.fields.forEach((field) => {
-        const value = fieldValues[field.name] ?? "";
-        data[field.name] = field.type === "number" ? Number(value) : field.type === "boolean" ? value === "true" : value;
-      });
+      for (const field of schema?.fields ?? []) {
+        const value = fieldValues[field.name]?.trim() ?? "";
+
+        if (!value) {
+          if (field.required) {
+            throw new Error(`Fill in ${field.name}`);
+          }
+          continue;
+        }
+
+        if (field.type === "number") {
+          const parsed = Number(value);
+          if (Number.isNaN(parsed)) {
+            throw new Error(`${field.name} must be a number`);
+          }
+          data[field.name] = parsed;
+          continue;
+        }
+
+        if (field.type === "boolean") {
+          data[field.name] = value === "true";
+          continue;
+        }
+
+        data[field.name] = value;
+      }
 
       if (!data.name) data.name = schema?.name ?? "Attestation";
 
       const result = await issueAttestation(signerInfo.signer, id, recipient, data);
       setResults((current) => [...current, { recipient, ...result }]);
       setRecipient("");
+      setFieldValues({});
+      setRecipientHint(null);
     } catch (err: any) {
       setError(err?.message ?? "Transaction failed");
     } finally {
@@ -116,13 +141,17 @@ export default function IssueAttestationPage({ params }: { params: Promise<{ sch
             {myAddress && (
               <button
                 type="button"
-                onClick={() => setRecipient(myAddress)}
+                onClick={() => {
+                  setRecipient(myAddress);
+                  setRecipientHint("Will issue to your connected wallet address.");
+                }}
                 className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full border border-[var(--border)] px-3 py-1 text-[11px] uppercase tracking-[0.16em] text-[var(--muted)]"
               >
                 Use mine
               </button>
             )}
           </div>
+          {recipientHint && <p className="text-xs text-[var(--muted)]">{recipientHint}</p>}
         </div>
 
         {schema?.fields.map((field) => (

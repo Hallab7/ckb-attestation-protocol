@@ -14,7 +14,7 @@ export default function AttestationDetailPage({ params }: { params: Promise<{ at
   const [attestation, setAttestation] = useState<Attestation | null>(null);
   const [schema, setSchema] = useState<Schema | null>(null);
   const [loading, setLoading] = useState(true);
-  const [myAddress, setMyAddress] = useState<string | null>(null);
+  const [myLockHash, setMyLockHash] = useState<string | null>(null);
   const [revoking, setRevoking] = useState(false);
   const [resultTx, setResultTx] = useState<string | null>(null);
   const [txError, setTxError] = useState<string | null>(null);
@@ -33,10 +33,13 @@ export default function AttestationDetailPage({ params }: { params: Promise<{ at
 
   useEffect(() => {
     if (!signerInfo?.signer) {
-      setMyAddress(null);
+      setMyLockHash(null);
       return;
     }
-    signerInfo.signer.getRecommendedAddress().then(setMyAddress).catch(() => setMyAddress(null));
+    signerInfo.signer
+      .getRecommendedAddressObj()
+      .then((addr) => setMyLockHash(addr.script.hash().toLowerCase()))
+      .catch(() => setMyLockHash(null));
   }, [signerInfo]);
 
   async function handleRevoke() {
@@ -59,9 +62,9 @@ export default function AttestationDetailPage({ params }: { params: Promise<{ at
   }
 
   const isAttester = Boolean(
-    myAddress &&
+    myLockHash &&
       attestation &&
-      attestation.attesterLockHash.toLowerCase().includes(myAddress.slice(0, 10).toLowerCase())
+      attestation.attesterLockHash.toLowerCase() === myLockHash
   );
 
   return (
